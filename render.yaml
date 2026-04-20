@@ -1,21 +1,24 @@
 # Render Infrastructure as Code (Blueprint)
-services:
+databases:
   # 1. Package Database (PostgreSQL)
-  - type: database
-    name: package-db
-    databaseName: package_tracking
-    user: admin
+  - name: package-db
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
   # 2. Vulnerability Database (PostgreSQL)
-  - type: database
-    name: vuln-db
-    databaseName: vulnerability_tracking
-    user: admin
+  - name: vuln-db
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
+services:
   # 3. Package Service (FastAPI)
   - type: web
     name: package-service
-    env: docker
+    runtime: docker
     dockerContext: ./package-service
     plan: free
     envVars:
@@ -29,7 +32,7 @@ services:
   # 4. Vulnerability Service (FastAPI)
   - type: web
     name: vuln-service
-    env: docker
+    runtime: docker
     dockerContext: ./vuln-service
     plan: free
     envVars:
@@ -48,7 +51,7 @@ services:
   # 5. Frontend Dashboard (React/Vite)
   - type: web
     name: vulnerability-dashboard
-    env: docker
+    runtime: docker
     dockerContext: ./frontend
     plan: free
     envVars:
