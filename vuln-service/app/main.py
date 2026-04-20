@@ -21,19 +21,6 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await db.connect()
-    # Auto-bootstrap tables for shared DB compatibility
-    await db.execute("""
-        CREATE TABLE IF NOT EXISTS cves (
-            id SERIAL PRIMARY KEY,
-            cve_id VARCHAR(50) NOT NULL,
-            description TEXT,
-            severity VARCHAR(20),
-            cvss_score NUMERIC(3, 1),
-            package_name VARCHAR(255) NOT NULL,
-            version VARCHAR(50),
-            reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
 
 @app.on_event("shutdown")
 async def shutdown():

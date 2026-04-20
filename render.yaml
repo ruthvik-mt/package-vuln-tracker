@@ -1,15 +1,23 @@
 # Render Infrastructure as Code (Blueprint)
-# Using a SHARED database to comply with Render Free Tier limits (1 DB per account)
+# NOTE: This requires a Render account that can create 2 free PostgreSQL databases.
 
 databases:
-  - name: ruthvik-mt-shared-db
+  # 1. Package Database (PostgreSQL)
+  - name: ruthvik-mt-package-db
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+
+  # 2. Vulnerability Database (PostgreSQL)
+  - name: ruthvik-mt-vuln-db
     plan: free
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
 
 services:
-  # 1. Package Service (FastAPI)
+  # 3. Package Service (FastAPI)
   - type: web
     name: ruthvik-mt-package-service
     runtime: docker
@@ -18,12 +26,12 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: ruthvik-mt-shared-db
+          name: ruthvik-mt-package-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
-  # 2. Vulnerability Service (FastAPI)
+  # 4. Vulnerability Service (FastAPI)
   - type: web
     name: ruthvik-mt-vuln-service
     runtime: docker
@@ -32,7 +40,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: ruthvik-mt-shared-db
+          name: ruthvik-mt-vuln-db
           property: connectionString
       - key: PACKAGE_SERVICE_URL
         fromService:
@@ -42,7 +50,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-  # 3. Frontend Dashboard (React/Vite)
+  # 5. Frontend Dashboard (React/Vite)
   - type: web
     name: ruthvik-mt-dashboard
     runtime: docker

@@ -1,79 +1,74 @@
-# 🚀 Production Deployment Guide
+# 🏢 Traditional VPS Deployment Guide (Professional)
 
-This guide explains how to deploy the **Vulnerability Tracker** to a production environment.
+This guide explains the "Traditional" industry-standard way to deploy a complex microservices project using a **Virtual Private Server (VPS)**.
 
-## 📋 Prerequisites
-1.  **A Linux Server**: (e.g., DigitalOcean Droplet, AWS EC2, or Azure VM). Recommended: Ubuntu 22.04 LTS.
-2.  **A Domain Name**: (Optional, but recommended for professional look).
-3.  **GitHub Account**: To transfer your code.
+## 🚀 Why Use a VPS?
+Platforms like Render or Vercel are "Platform as a Service" (PaaS). They limit you (e.g., "Only 1 Free DB"). 
+A **VPS** (AWS, DigitalOcean, Azure) is a "Infrastructure as a Service" (IaaS). You get a full Linux computer in the cloud.
+*   **Zero Limits**: Run as many databases and services as the RAM allows.
+*   **Total Control**: You manage the security, networking, and scaling.
+*   **Real World Experience**: This is how senior engineers at top tech companies deploy distributed systems.
 
 ---
 
-## 1. Prepare your production environment
-Log into your server via SSH and install the Docker Engine:
+## 🛠️ Step 1: Get a Server
+1.  Create an account on **DigitalOcean**, **AWS**, or **Linode**.
+2.  Launch a "Droplet" or "EC2 Instance" with **Ubuntu 22.04 LTS**.
+3.  A $5/month server is enough for this project.
+
+---
+
+## ⚙️ Step 2: One-Time Server Setup
+Once you log into your server via SSH, run this command to install the entire Docker stack:
 
 ```bash
-# Update and install Docker
-sudo apt-get update
-sudo apt-get install ca-certificates cursor curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# Install Docker and Docker Compose
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
 ```
 
 ---
 
-## 2. Deploy the Project
-Once Docker is installed, follow these steps:
+## 📦 Step 3: Deploy Everything (The Simple Way)
+Because we have a `docker-compose.yml`, you can deploy all 5 services with **one single command** on your server.
 
-1.  **Push your code to GitHub**:
-    *   Create a private repository.
-    *   Push your local folder: `git add .`, `git commit -m "Deployment ready"`, `git push origin main`.
-
-2.  **Clone on the Server**:
+1.  **Clone your GitHub repo**:
     ```bash
-    git clone https://github.com/yourusername/package-vuln-tracker.git
+    git clone https://github.com/ruthvik-mt/package-vuln-tracker.git
     cd package-vuln-tracker
     ```
 
-3.  **Launch in Production Mode**:
+2.  **Launch the System**:
     ```bash
-    # Run in detached mode (background)
+    # This starts both Databases, both Backends, and the Frontend in the background
     sudo docker compose up -d --build
     ```
 
 ---
 
-## 3. Production Hardening (CRITICAL)
+## 🌐 Step 4: Go Live
+Your project is now running on your server's IP address!
+*   **Dashboard**: `http://YOUR_SERVER_IP:3000`
+*   **Backends**: Ports 8001 and 8002.
 
-> [!WARNING]
-> **Change Default Credentials**: 
-> In a real deployment, you MUST change the `ADMIN_PASSWORD_HASH` and `JWT_SECRET` in your `docker-compose.yml` or `.env` file. Do not use "admin" on a public server!
+### 🛡️ For a "Presentation-Ready" URL:
+If you want a real domain name (e.g., `audit.yourname.com`) and HTTPS (the green lock), we simply add a **Reverse Proxy** like Nginx:
 
-> [!IMPORTANT]
-> **Database Backups**:
-> Set up a "Cron Job" on your Linux server to back up your PostgreSQL volumes daily.
-
----
-
-## 4. Setting up HTTPS (SSL)
-To get the green padlock in the browser, use **Nginx** as a reverse proxy with **Let's Encrypt**:
-
-1.  Install Nginx on the server: `sudo apt install nginx`.
-2.  Install Certbot: `sudo apt install certbot python3-certbot-nginx`.
-3.  Run: `sudo certbot --nginx -d yourdomain.com`.
+```bash
+sudo apt install nginx certbot python3-certbot-nginx
+# Certbot will automatically give you an SSL certificate for free!
+```
 
 ---
 
-## 🛠️ Typical "Real World" Operations
-*   **Checking Logs**: `docker compose logs -f`
-*   **Scaling**: `docker compose up -d --scale package-service=3` (to handle more traffic!)
-*   **Updates**: Just run `git pull` followed by `docker compose up -d --build`.
+## 📊 Comparison Summary
+
+| Feature | Render/Vercel (PaaS) | **Traditional VPS (IaaS)** |
+| :--- | :--- | :--- |
+| **Database Limit** | 1 Free DB | **Unlimited** |
+| **Control** | Standard | **Complete Control** |
+| **Professionalism** | Entry Level | **Senior Level** |
+| **Reliability** | Shared Resources | **Dedicated Resources** |
+
+> [!TIP]
+> Presenting your project on a dedicated IP address (e.g. `http://157.245.xxx.xxx:3000`) is a powerful way to show recruiters that you know how to manage cloud infrastructure!
