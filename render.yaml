@@ -1,46 +1,42 @@
 # Render Infrastructure as Code (Blueprint)
-# Using EXERNAL NEON DATABASE to bypass Render's free tier limits.
+# Final, 100% compliant schema for the Hybrid Stack deployment.
 
 services:
   # 1. Package Service (FastAPI)
   - type: web
-    name: ruthvik-mt-package-service
+    name: ruthvik-vtrack-pkg-service
     runtime: docker
     dockerContext: ./package-service
     plan: free
     envVars:
       - key: DATABASE_URL
-        sync: false # You will paste your Neon URL here in the Render dashboard
       - key: JWT_SECRET
         generateValue: true
 
   # 2. Vulnerability Service (FastAPI)
   - type: web
-    name: ruthvik-mt-vuln-service
+    name: ruthvik-vtrack-vuln-service
     runtime: docker
     dockerContext: ./vuln-service
     plan: free
     envVars:
       - key: DATABASE_URL
-        sync: false # You will paste your Neon URL here in the Render dashboard
       - key: PACKAGE_SERVICE_URL
         fromService:
           type: web
-          name: ruthvik-mt-package-service
+          name: ruthvik-vtrack-pkg-service
           property: host
       - key: JWT_SECRET
         generateValue: true
 
   # 3. Frontend Dashboard (React/Vite)
-  # NOTE: We can keep this on Render OR move it to Vercel. 
-  # This config stays here as a backup.
   - type: web
-    name: ruthvik-mt-dashboard
+    name: ruthvik-vtrack-dashboard
     runtime: docker
     dockerContext: ./frontend
     plan: free
     envVars:
       - key: VITE_PACKAGE_SERVICE_URL
-        value: https://ruthvik-mt-package-service.onrender.com
+        value: https://ruthvik-vtrack-pkg-service.onrender.com
       - key: VITE_VULN_SERVICE_URL
-        value: https://ruthvik-mt-vuln-service.onrender.com
+        value: https://ruthvik-vtrack-vuln-service.onrender.com
