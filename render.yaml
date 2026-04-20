@@ -1,5 +1,5 @@
 # Render Infrastructure as Code (Blueprint)
-# Final, 100% compliant schema for the Hybrid Stack deployment.
+# Final, Hardcoded for Zero-Error Deployment
 
 services:
   # 1. Package Service (FastAPI)
@@ -10,6 +10,7 @@ services:
     plan: free
     envVars:
       - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_5wjMyQabYxR1@ep-dry-wildflower-an5lo9rm-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
       - key: JWT_SECRET
         generateValue: true
 
@@ -21,6 +22,7 @@ services:
     plan: free
     envVars:
       - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_5wjMyQabYxR1@ep-dry-wildflower-an5lo9rm-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
       - key: PACKAGE_SERVICE_URL
         fromService:
           type: web
