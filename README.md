@@ -1,4 +1,4 @@
-# ??? Microservices Vulnerability Tracker
+# 🛡️ Microservices Vulnerability Tracker
 
 A production-ready, distributed system for tracking package vulnerabilities and security risks. Built with a modern microservices architecture and a high-performance React dashboard.
 
@@ -8,7 +8,7 @@ A production-ready, distributed system for tracking package vulnerabilities and 
 
 ---
 
-## ??? Architecture Overview
+## 🏗️ Architecture Overview
 
 The project is split into 5 core components for maximum scalability and service isolation:
 
@@ -18,7 +18,7 @@ The project is split into 5 core components for maximum scalability and service 
 4.  **Package Database**: Dedicated PostgreSQL instance for asset data.
 5.  **Vulnerability Database**: Dedicated PostgreSQL instance for security records.
 
-\\\mermaid
+```mermaid
 graph TD
     User((Admin)) -->|React| Dashboard[Frontend]
     Dashboard -->|JWT| PS[Package Service]
@@ -26,11 +26,11 @@ graph TD
     VS -.->|Validation| PS
     PS --> PDB[(Package DB)]
     VS --> VDB[(Vulnerability DB)]
-\\\
+```
 
 ---
 
-## ? Key Features
+## ✨ Key Features
 
 *   **Glassmorphic UI**: A modern, interactive dashboard with real-time risk feedback.
 *   **Dynamic Risk Scoring**: Proprietary algorithm calculating risk based on Average CVSS and manual severity weighting.
@@ -40,26 +40,26 @@ graph TD
 
 ---
 
-## ?? Getting Started
+## 🚀 Getting Started
 
 ### Local Setup (Development)
 Ensure you have **Docker Desktop** installed, then run:
 
-\\\ash
+```bash
 docker-compose up --build
-\\\
-Access the dashboard at: \http://localhost:3000\  
-**Credentials**: \dmin\ / \dmin\
+```
+Access the dashboard at: `http://localhost:3000`  
+**Credentials**: `admin` / `admin`
 
 ### Cloud Deployment (Render)
-This project is configured with a \ender.yaml\ blueprint for instant deployment:
+This project is configured with a `render.yaml` blueprint for instant deployment:
 1.  Connect this repository to [Render.com](https://render.com).
 2.  Create a new **Blueprint Instance**.
 3.  The databases and backends will spin up automatically.
 
 ---
 
-## ??? Technology Stack
+## 🏗️ Technology Stack
 
 *   **Backend**: Python, FastAPI, Asyncpg, PostgreSQL.
 *   **Frontend**: React 18, Vite, Lucide-React.
@@ -68,7 +68,7 @@ This project is configured with a \ender.yaml\ blueprint for instant deployment
 
 ---
 
-## ?? Authors
+## 👥 Authors
 *   **Ruthvik-mt** - [GitHub](https://github.com/ruthvik-mt)
 
 ---
