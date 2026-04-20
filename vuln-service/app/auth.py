@@ -32,11 +32,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            print("AUTH DEBUG: No 'sub' found in token")
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"AUTH DEBUG: JWT Decode failed: {str(e)}")
         raise credentials_exception
     
     if username != settings.ADMIN_USERNAME:
+        print(f"AUTH DEBUG: Username mismatch. Got {username}, expected {settings.ADMIN_USERNAME}")
         raise credentials_exception
     return username
 

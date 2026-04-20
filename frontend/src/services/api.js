@@ -1,5 +1,5 @@
-const PACKAGE_URL = "http://localhost:8001";
-const VULN_URL = "http://localhost:8002";
+const PACKAGE_URL = "https://vtrack-package-service.onrender.com";
+const VULN_URL = "https://vtrack-vuln-service.onrender.com";
 
 const getHeaders = () => {
   const token = localStorage.getItem("token");
