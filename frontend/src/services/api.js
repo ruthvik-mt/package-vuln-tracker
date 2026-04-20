@@ -1,5 +1,5 @@
-const PACKAGE_URL = "https://vtrack-package-service.onrender.com";
-const VULN_URL = "https://vtrack-vuln-service.onrender.com";
+const PACKAGE_URL = import.meta.env.VITE_PACKAGE_URL || "http://localhost:8001";
+const VULN_URL = import.meta.env.VITE_VULN_URL || "http://localhost:8002";
 
 const getHeaders = () => {
   const token = localStorage.getItem("token");
@@ -15,12 +15,17 @@ export const api = {
     const formData = new URLSearchParams();
     formData.append("username", username);
     formData.append("password", password);
+    
     const response = await fetch(`${PACKAGE_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData,
     });
-    if (!response.ok) throw new Error("Login failed");
+    
+    if (!response.ok) {
+        if (response.status === 404) throw new Error("Backend connection failed: URL Mismatch (404)");
+        throw new Error("Security Alert: Invalid credentials or connection refused.");
+    }
     return response.json();
   },
 
