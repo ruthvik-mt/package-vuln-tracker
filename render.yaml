@@ -1,23 +1,15 @@
 # Render Infrastructure as Code (Blueprint)
-# Global names must be unique; using 'ruthvik-mt-' prefix
+# Using a SHARED database to comply with Render Free Tier limits (1 DB per account)
 
 databases:
-  # 1. Package Database (PostgreSQL)
-  - name: ruthvik-mt-package-db
-    plan: free
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: everywhere
-
-  # 2. Vulnerability Database (PostgreSQL)
-  - name: ruthvik-mt-vuln-db
+  - name: ruthvik-mt-shared-db
     plan: free
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
 
 services:
-  # 3. Package Service (FastAPI)
+  # 1. Package Service (FastAPI)
   - type: web
     name: ruthvik-mt-package-service
     runtime: docker
@@ -26,12 +18,12 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: ruthvik-mt-package-db
+          name: ruthvik-mt-shared-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
-  # 4. Vulnerability Service (FastAPI)
+  # 2. Vulnerability Service (FastAPI)
   - type: web
     name: ruthvik-mt-vuln-service
     runtime: docker
@@ -40,7 +32,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: ruthvik-mt-vuln-db
+          name: ruthvik-mt-shared-db
           property: connectionString
       - key: PACKAGE_SERVICE_URL
         fromService:
@@ -50,14 +42,13 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-  # 5. Frontend Dashboard (React/Vite)
+  # 3. Frontend Dashboard (React/Vite)
   - type: web
     name: ruthvik-mt-dashboard
     runtime: docker
     dockerContext: ./frontend
     plan: free
     envVars:
-      # Browser-based apps need the public .onrender.com URL
       - key: VITE_PACKAGE_SERVICE_URL
         value: https://ruthvik-mt-package-service.onrender.com
       - key: VITE_VULN_SERVICE_URL

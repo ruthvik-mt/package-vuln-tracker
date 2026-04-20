@@ -21,6 +21,23 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await db.connect()
+    # Auto-bootstrap tables for shared DB compatibility
+    await db.execute("""
+        CREATE TABLE IF NOT EXISTS packages (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            ecosystem VARCHAR(50) NOT NULL,
+            UNIQUE(name, ecosystem)
+        )
+    """)
+    await db.execute("""
+        CREATE TABLE IF NOT EXISTS versions (
+            id SERIAL PRIMARY KEY,
+            package_id INTEGER REFERENCES packages(id) ON DELETE CASCADE,
+            version VARCHAR(50) NOT NULL,
+            UNIQUE(package_id, version)
+        )
+    """)
 
 @app.on_event("shutdown")
 async def shutdown():
