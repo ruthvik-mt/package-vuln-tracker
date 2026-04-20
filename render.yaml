@@ -1,0 +1,64 @@
+# Render Infrastructure as Code (Blueprint)
+services:
+  # 1. Package Database (PostgreSQL)
+  - type: database
+    name: package-db
+    databaseName: package_tracking
+    user: admin
+
+  # 2. Vulnerability Database (PostgreSQL)
+  - type: database
+    name: vuln-db
+    databaseName: vulnerability_tracking
+    user: admin
+
+  # 3. Package Service (FastAPI)
+  - type: web
+    name: package-service
+    env: docker
+    dockerContext: ./package-service
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: package-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+  # 4. Vulnerability Service (FastAPI)
+  - type: web
+    name: vuln-service
+    env: docker
+    dockerContext: ./vuln-service
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vuln-db
+          property: connectionString
+      - key: PACKAGE_SERVICE_URL
+        fromService:
+          type: web
+          name: package-service
+          property: host
+      - key: JWT_SECRET
+        generateValue: true
+
+  # 5. Frontend Dashboard (React/Vite)
+  - type: web
+    name: vulnerability-dashboard
+    env: docker
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: VITE_PACKAGE_SERVICE_URL
+        fromService:
+          type: web
+          name: package-service
+          property: host
+      - key: VITE_VULN_SERVICE_URL
+        fromService:
+          type: web
+          name: vuln-service
+          property: host

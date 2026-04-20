@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+
+# Databases
+pg_data/
+vuln_pg_data/
+
+# Node / Frontend
+node_modules/
+dist/
+.eslintcache
+
+# Docker
+.dockerignore
+!docker-compose.yml
+
+# OS
+.DS_Store
+Thumbs.db
