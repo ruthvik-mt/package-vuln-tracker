@@ -30,7 +30,7 @@ const App = () => {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
   const [newPkg, setNewPkg] = useState({ name: '', ecosystem: 'pypi' });
-  const [newCVE, setNewCVE] = useState({ cve_id: '', description: '', severity: 'MEDIUM', cvss_score: 5.0 });
+  const [newCVE, setNewCVE] = useState({ cve_id: '', description: '', severity: 'MEDIUM', cvss_score: 5.0, version: '' });
   const [newVersion, setNewVersion] = useState('');
 
   useEffect(() => {
@@ -281,6 +281,15 @@ const App = () => {
             <div className="input-group">
               <label>CVE Identifier</label>
               <input type="text" placeholder="CVE-2024-XXXX" required value={newCVE.cve_id} onChange={e => setNewCVE({...newCVE, cve_id: e.target.value})} />
+            </div>
+            <div className="input-group">
+              <label>Affected Version</label>
+              <select value={newCVE.version} onChange={e => setNewCVE({...newCVE, version: e.target.value})} required>
+                <option value="">Select Version</option>
+                {selectedPkg.versions.map(v => (
+                  <option key={v.id} value={v.version}>{v.version}</option>
+                ))}
+              </select>
             </div>
             <div className="input-group">
               <label>Security Impact (CVSS)</label>
