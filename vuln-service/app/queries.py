@@ -14,3 +14,11 @@ class CVEQueries:
     @staticmethod
     def get_severity_counts():
         return "SELECT severity, COUNT(id) as count FROM cves WHERE package_name = $1 GROUP BY severity"
+
+    @staticmethod
+    def delete_cve():
+        return "DELETE FROM cves WHERE id = $1"
+    
+    @staticmethod
+    def delete_cves_by_package():
+        return "DELETE FROM cves WHERE package_name = $1"

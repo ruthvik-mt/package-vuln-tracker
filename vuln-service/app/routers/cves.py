@@ -43,3 +43,13 @@ async def create_cve(cve: CVECreate, current_user: str = Depends(get_current_use
 async def get_cves_by_package(package_name: str):
     rows = await db.fetch(CVEQueries.get_cves_by_package(), package_name)
     return [dict(r) for r in rows]
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_cve(id: int, current_user: str = Depends(get_current_user)):
+    await db.execute(CVEQueries.delete_cve(), id)
+    return None
+
+@router.delete("/package/{package_name}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_package_cves(package_name: str, current_user: str = Depends(get_current_user)):
+    await db.execute(CVEQueries.delete_cves_by_package(), package_name)
+    return None

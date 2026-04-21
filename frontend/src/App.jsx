@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Package, ShieldAlert, Plus, LogOut, ChevronRight, AlertTriangle, ShieldCheck, X, Activity, Server, Database } from 'lucide-react';
+import { Package, ShieldAlert, Plus, LogOut, ChevronRight, AlertTriangle, ShieldCheck, X, Activity, Server, Database, Trash2, RotateCw } from 'lucide-react';
 import { api } from './services/api';
 
 const Modal = ({ title, onClose, children }) => (
   <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
-    <div className="glass-card fade-in" style={{ width: '100%', maxWidth: '500px', cursor: 'default' }} onClick={e => e.stopPropagation()}>
+    <div className="glass-card fade-in" style={{ width: '100%', maxWidth: '500px', cursor: 'default', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem' }}>{title}</h2>
+        <h2 style={{ fontSize: '1.25rem' }}>{title}</h2>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X /></button>
       </div>
       {children}
@@ -27,11 +27,13 @@ const App = () => {
   const [showAddCVE, setShowAddCVE] = useState(false);
 
   // Form States
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [newPkg, setNewPkg] = useState({ name: '', ecosystem: 'pypi' });
   const [newCVE, setNewCVE] = useState({ cve_id: '', description: '', severity: 'MEDIUM', cvss_score: 5.0, version: '' });
   const [newVersion, setNewVersion] = useState('');
+  const [selectedCVEs, setSelectedCVEs] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (token) fetchPackages();
@@ -39,6 +41,7 @@ const App = () => {
 
   const fetchPackages = async () => {
     try {
+      setIsRefreshing(true);
       setError('');
       setLoading(true);
       const data = await api.getPackages();
@@ -60,6 +63,16 @@ const App = () => {
       setError('System connection error. Ensure both microservices are online.');
     } finally {
       setLoading(false);
+      setTimeout(() => setIsRefreshing(false), 800);
+    }
+  };
+
+  const fetchCVEs = async (pkgName) => {
+    try {
+      const data = await api.getCVEs(pkgName);
+      setSelectedCVEs(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -87,15 +100,42 @@ const App = () => {
     }
   };
 
+  const handleDeletePackage = async (e, pkg) => {
+    e.stopPropagation();
+    if (window.confirm(`Permanently delete ${pkg.name}? This will remove all versions and security records.`)) {
+      try {
+        await api.deletePackage(pkg.id);
+        await api.deleteCVEsByPackage(pkg.name);
+        fetchPackages();
+        if (selectedPkg?.id === pkg.id) setSelectedPkg(null);
+      } catch (err) {
+        alert("Deletion failed");
+      }
+    }
+  };
+
   const handleAddCVE = async (e) => {
     e.preventDefault();
     try {
       await api.addCVE({ ...newCVE, package_name: selectedPkg.name });
       setShowAddCVE(false);
-      setNewCVE({ cve_id: '', description: '', severity: 'MEDIUM', cvss_score: 5.0 });
+      setNewCVE({ cve_id: '', description: '', severity: 'MEDIUM', cvss_score: 5.0, version: '' });
       fetchPackages();
+      fetchCVEs(selectedPkg.name);
     } catch (err) {
         alert(err.message);
+    }
+  };
+
+  const handleDeleteCVE = async (cveId) => {
+    if (window.confirm("Remove this security record?")) {
+      try {
+        await api.deleteCVE(cveId);
+        fetchCVEs(selectedPkg.name);
+        fetchPackages();
+      } catch (err) {
+        alert("Failed to delete CVE");
+      }
     }
   };
 
@@ -104,9 +144,26 @@ const App = () => {
     try {
       await api.addVersion(selectedPkg.id, newVersion);
       setNewVersion('');
-      fetchPackages();
+      const updated = await api.getPackages();
+      const freshPkg = updated.find(p => p.id === selectedPkg.id);
+      if (freshPkg) setSelectedPkg(freshPkg);
+      setPackages(updated);
     } catch (err) {
       alert("Error adding version");
+    }
+  };
+
+  const handleDeleteVersion = async (versionId) => {
+    if (window.confirm("Delete this version?")) {
+      try {
+        await api.deleteVersion(versionId);
+        const updated = await api.getPackages();
+        const freshPkg = updated.find(p => p.id === selectedPkg.id);
+        if (freshPkg) setSelectedPkg(freshPkg);
+        setPackages(updated);
+      } catch (err) {
+        alert("Failed to delete version");
+      }
     }
   };
 
@@ -162,7 +219,10 @@ const App = () => {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={fetchPackages} className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'white' }}>Refresh Feed</button>
+            <button onClick={fetchPackages} className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <RotateCw size={16} className={isRefreshing ? 'spin' : ''} />
+              Refresh Feed
+            </button>
             <button onClick={handleLogout} className="btn" style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' }}>
             <LogOut size={18} /> Disconnect
             </button>
@@ -175,7 +235,15 @@ const App = () => {
           const isHighRisk = risk.risk_score > 4;
           
           return (
-            <div key={pkg.id} className="glass-card fade-in" style={{ cursor: 'pointer' }} onClick={() => setSelectedPkg(pkg)}>
+            <div key={pkg.id} className="glass-card fade-in" style={{ cursor: 'pointer', position: 'relative' }} onClick={() => { setSelectedPkg(pkg); fetchCVEs(pkg.name); }}>
+              <button 
+                onClick={(e) => handleDeletePackage(e, pkg)}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'rgba(239, 68, 68, 0.4)', cursor: 'pointer', zIndex: 10 }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(239, 68, 68, 0.4)'}
+              >
+                <Trash2 size={16} />
+              </button>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.5rem', borderRadius: '10px' }}>
@@ -250,7 +318,7 @@ const App = () => {
       {selectedPkg && !showAddCVE && (
         <Modal title={`Asset Audit: ${selectedPkg.name}`} onClose={() => setSelectedPkg(null)}>
           <div style={{ marginBottom: '2rem' }}>
-            <h4 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1rem', textTransform: 'uppercase' }}>Version Control</h4>
+            <h4 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Version Control</h4>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
               <input 
                 type="text" 
@@ -261,15 +329,45 @@ const App = () => {
               />
               <button className="btn btn-primary" onClick={handleAddVersion}><Plus size={16}/></button>
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              {selectedPkg.versions.map(v => (
+                <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '0.85rem' }}>v{v.version}</span>
+                  <button onClick={() => handleDeleteVersion(v.id)} style={{ background: 'none', border: 'none', color: 'rgba(239, 68, 68, 0.4)', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(239, 68, 68, 0.4)'}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)', marginBottom: '1.5rem' }}>
-            <h4 style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldAlert size={16} /> SECURITY VULNERABILITIES
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h4 style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ShieldAlert size={16} /> Active Incidents
             </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+              {selectedCVEs.length > 0 ? selectedCVEs.map(cve => (
+                <div key={cve.id} style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'white' }}>{cve.cve_id} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.75rem' }}>({cve.version})</span></div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(239, 68, 68, 0.7)', marginTop: '0.2rem' }}>{cve.severity} Impact • {cve.cvss_score} CVSS</div>
+                  </div>
+                  <button onClick={() => handleDeleteCVE(cve.id)} style={{ background: 'none', border: 'none', color: 'rgba(239, 68, 68, 0.4)', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(239, 68, 68, 0.4)'}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )) : (
+                <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px dashed var(--border)' }}>
+                  No security incidents recorded
+                </div>
+              )}
+            </div>
+            
             <button className="btn btn-primary" style={{ width: '100%', background: 'var(--danger)', boxShadow: 'none' }} onClick={() => setShowAddCVE(true)}>
               Record Security Incident (CVE)
             </button>
           </div>
+          
           <button className="btn" style={{ width: '100%', background: 'rgba(255,255,255,0.05)', justifyContent: 'center' }} onClick={() => setSelectedPkg(null)}>Close Audit</button>
         </Modal>
       )}

@@ -54,3 +54,13 @@ async def validate_package(name: str, version: str):
         return {"valid": False}
     
     return {"valid": True}
+
+@router.delete("/{package_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_package(package_id: int, current_user: str = Depends(get_current_user)):
+    # Check if exists
+    row = await db.fetchrow(PackageQueries.get_package_by_id(), package_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    await db.execute(PackageQueries.delete_package(), package_id)
+    return None

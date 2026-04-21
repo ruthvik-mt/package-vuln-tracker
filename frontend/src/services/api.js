@@ -88,5 +88,42 @@ export const api = {
         throw new Error(data.detail || "Access Denied: Vulnerability service authentication failed");
     }
     return data;
+  },
+
+  getCVEs: async (packageName) => {
+    const res = await fetch(`${VULN_URL}/cves/${packageName}`, { headers: getHeaders() });
+    return res.json();
+  },
+
+  deletePackage: async (packageId) => {
+    const res = await fetch(`${PACKAGE_URL}/packages/${packageId}`, { 
+      method: "DELETE",
+      headers: getHeaders() 
+    });
+    return res.ok;
+  },
+
+  deleteVersion: async (versionId) => {
+    const res = await fetch(`${PACKAGE_URL}/packages/versions/${versionId}`, { 
+      method: "DELETE",
+      headers: getHeaders() 
+    });
+    return res.ok;
+  },
+
+  deleteCVE: async (cveId) => {
+    const res = await fetch(`${VULN_URL}/cves/${cveId}`, { 
+      method: "DELETE",
+      headers: getHeaders() 
+    });
+    return res.ok;
+  },
+
+  deleteCVEsByPackage: async (packageName) => {
+    const res = await fetch(`${VULN_URL}/cves/package/${packageName}`, { 
+      method: "DELETE",
+      headers: getHeaders() 
+    });
+    return res.ok;
   }
 };

@@ -18,3 +18,8 @@ async def create_version(package_id: int, version: VersionCreate, current_user: 
         return dict(row)
     except Exception as e:
         raise HTTPException(status_code=400, detail="Version already exists or invalid data")
+
+@router.delete("/versions/{version_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_version(version_id: int, current_user: str = Depends(get_current_user)):
+    await db.execute(PackageQueries.delete_version(), version_id)
+    return None
