@@ -17,28 +17,33 @@ export const api = {
     formData.append("username", username);
     formData.append("password", password);
     
-    // Debugging logs for production troubleshooting
-    console.log(`Connecting to Package Service at: ${PACKAGE_URL}`);
-    
-    const response = await fetch(`${PACKAGE_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData,
-    });
-    
-    if (!response.ok) {
-        if (response.status === 404) {
-            throw new Error(`Connection Error: The Package Service URL is incorrect (${PACKAGE_URL})`);
+    try {
+        const response = await fetch(`${PACKAGE_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData,
+        });
+        
+        if (!response.ok) {
+            if (response.status === 404) throw new Error(`Backend not found at ${PACKAGE_URL}`);
+            throw new Error("Invalid credentials or server error");
         }
-        throw new Error("Security Alert: Invalid credentials or connection refused.");
+        return await response.json();
+    } catch (err) {
+        throw new Error(err.message || "Connection refused by Package Service");
     }
-    return response.json();
   },
 
   // Packages
   getPackages: async () => {
-    const res = await fetch(`${PACKAGE_URL}/packages/`, { headers: getHeaders() });
-    return res.json();
+    try {
+        const res = await fetch(`${PACKAGE_URL}/packages/`, { headers: getHeaders() });
+        if (!res.ok) throw new Error(`Service Error: ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        return []; // Return empty list rather than crashing
+    }
   },
 
   addPackage: async (name, ecosystem) => {
@@ -47,6 +52,7 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify({ name, ecosystem }),
     });
+    if (!res.ok) throw new Error("Failed to register asset");
     return res.json();
   },
 
@@ -56,13 +62,19 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify({ version }),
     });
+    if (!res.ok) throw new Error("Failed to update version");
     return res.json();
   },
 
   // Vulns
   getRisk: async (packageName) => {
-    const res = await fetch(`${VULN_URL}/risk/${packageName}`, { headers: getHeaders() });
-    return res.json();
+    try {
+        const res = await fetch(`${VULN_URL}/risk/${packageName}`, { headers: getHeaders() });
+        if (!res.ok) return { risk_score: 0 };
+        return await res.json();
+    } catch (err) {
+        return { risk_score: 0 };
+    }
   },
 
   addCVE: async (cveData) => {
@@ -71,10 +83,10 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(cveData),
     });
+    const data = await res.json();
     if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.detail || "Failed to add CVE");
+        throw new Error(data.detail || "Access Denied: Vulnerability service authentication failed");
     }
-    return res.json();
+    return data;
   }
 };
