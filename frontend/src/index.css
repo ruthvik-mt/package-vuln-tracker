@@ -88,8 +88,13 @@ body {
   transition: border-color 0.2s;
 }
 
-.input-group input:focus {
+.input-group input:focus, .input-group select:focus {
   border-color: var(--primary);
+}
+
+select option {
+  background: #1e293b;
+  color: white;
 }
 
 /* Animations */

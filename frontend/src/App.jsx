@@ -170,6 +170,8 @@ const App = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken(null);
+    setUsername('');
+    setPassword('');
   };
 
   if (!token) {
@@ -238,11 +240,11 @@ const App = () => {
             <div key={pkg.id} className="glass-card fade-in" style={{ cursor: 'pointer', position: 'relative' }} onClick={() => { setSelectedPkg(pkg); fetchCVEs(pkg.name); }}>
               <button 
                 onClick={(e) => handleDeletePackage(e, pkg)}
-                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'rgba(239, 68, 68, 0.4)', cursor: 'pointer', zIndex: 10 }}
+                style={{ position: 'absolute', top: '0.75rem', right: '0.5rem', background: 'none', border: 'none', color: 'rgba(239, 68, 68, 0.4)', cursor: 'pointer', zIndex: 10 }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'rgba(239, 68, 68, 0.4)'}
               >
-                <Trash2 size={16} />
+                <Trash2 size={14} />
               </button>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -260,7 +262,8 @@ const App = () => {
                   background: isHighRisk ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
                   color: isHighRisk ? 'var(--danger)' : 'var(--success)',
                   fontSize: '0.75rem',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  marginRight: '1.25rem'
                 }}>
                   {risk.risk_score.toFixed(1)} SCORE
                 </div>
