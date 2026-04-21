@@ -1,5 +1,6 @@
-const PACKAGE_URL = import.meta.env.VITE_PACKAGE_URL || "http://localhost:8001";
-const VULN_URL = import.meta.env.VITE_VULN_URL || "http://localhost:8002";
+const isProd = window.location.hostname !== 'localhost';
+const PACKAGE_URL = isProd ? "https://vtrack-package-service.onrender.com" : "http://localhost:8001";
+const VULN_URL = isProd ? "https://vtrack-vuln-service.onrender.com" : "http://localhost:8002";
 
 const getHeaders = () => {
   const token = localStorage.getItem("token");
