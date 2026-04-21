@@ -39,6 +39,7 @@ const App = () => {
 
   const fetchPackages = async () => {
     try {
+      setError('');
       setLoading(true);
       const data = await api.getPackages();
       setPackages(data);
