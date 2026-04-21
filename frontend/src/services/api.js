@@ -1,6 +1,5 @@
-const isProd = window.location.hostname !== 'localhost';
-const PACKAGE_URL = isProd ? "https://vtrack-package-service.onrender.com" : "http://localhost:8001";
-const VULN_URL = isProd ? "https://vtrack-vuln-service.onrender.com" : "http://localhost:8002";
+const PACKAGE_URL = import.meta.env.VITE_PACKAGE_URL || "http://localhost:8001";
+const VULN_URL = import.meta.env.VITE_VULN_URL || "http://localhost:8002";
 
 const getHeaders = () => {
   const token = localStorage.getItem("token");
@@ -17,6 +16,9 @@ export const api = {
     formData.append("username", username);
     formData.append("password", password);
     
+    // Debugging logs for production troubleshooting
+    console.log(`Connecting to Package Service at: ${PACKAGE_URL}`);
+    
     const response = await fetch(`${PACKAGE_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -24,7 +26,9 @@ export const api = {
     });
     
     if (!response.ok) {
-        if (response.status === 404) throw new Error("Backend connection failed: URL Mismatch (404)");
+        if (response.status === 404) {
+            throw new Error(`Connection Error: The Package Service URL is incorrect (${PACKAGE_URL})`);
+        }
         throw new Error("Security Alert: Invalid credentials or connection refused.");
     }
     return response.json();
