@@ -46,9 +46,14 @@ graph TD
 Ensure you have **Docker Desktop** installed, then run:
 
 ```bash
+# Start the full stack
 docker-compose up --build
+
+# Install frontend dependencies (if editing locally)
+cd frontend
+npm install
 ```
-Access the dashboard at: `http://localhost:3000`  
+Access the dashboard at: `http://localhost:8000`  
 **Credentials**: `admin` / `admin`
 
 ### Cloud Deployment (Render)

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-class CVEBase(BaseModel):
+class VulnerabilityBase(BaseModel):
     cve_id: str
     description: str
     severity: str
@@ -9,10 +9,10 @@ class CVEBase(BaseModel):
     package_name: str
     version: str
 
-class CVECreate(CVEBase):
+class VulnerabilityCreate(VulnerabilityBase):
     pass
 
-class CVE(CVEBase):
+class VulnerabilityRead(VulnerabilityBase):
     id: int
 
     class Config:

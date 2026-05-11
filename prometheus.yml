@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'package-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['package-service:8001']
+
+  - job_name: 'vuln-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['vuln-service:8002']

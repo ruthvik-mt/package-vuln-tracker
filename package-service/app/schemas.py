@@ -3,13 +3,13 @@ from typing import List, Optional
 
 class VersionBase(BaseModel):
     version: str
+    package_id: int
 
 class VersionCreate(VersionBase):
     pass
 
-class Version(VersionBase):
+class VersionRead(VersionBase):
     id: int
-    package_id: int
 
     class Config:
         from_attributes = True
@@ -21,9 +21,9 @@ class PackageBase(BaseModel):
 class PackageCreate(PackageBase):
     pass
 
-class Package(PackageBase):
+class PackageRead(PackageBase):
     id: int
-    versions: List[Version] = []
+    versions: List[VersionRead] = []
 
     class Config:
         from_attributes = True
